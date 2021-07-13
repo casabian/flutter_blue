@@ -7,10 +7,9 @@ part of flutter_blue;
 class FlutterBlue {
   final MethodChannel _channel = const MethodChannel('$NAMESPACE/methods');
   final EventChannel _stateChannel = const EventChannel('$NAMESPACE/state');
-  final StreamController<MethodCall> _methodStreamController =
-      new StreamController.broadcast(); // ignore: close_sinks
-  Stream<MethodCall> get _methodStream => _methodStreamController
-      .stream; // Used internally to dispatch methods from platform.
+  final StreamController<MethodCall> _methodStreamController = new StreamController.broadcast(); // ignore: close_sinks
+  Stream<MethodCall> get _methodStream =>
+      _methodStreamController.stream; // Used internally to dispatch methods from platform.
 
   /// Singleton boilerplate
   FlutterBlue._() {
@@ -29,8 +28,7 @@ class FlutterBlue {
   LogLevel get logLevel => _logLevel;
 
   /// Checks whether the device supports Bluetooth
-  Future<bool> get isAvailable =>
-      _channel.invokeMethod('isAvailable').then<bool>((d) => d);
+  Future<bool> get isAvailable => _channel.invokeMethod('isAvailable').then<bool>((d) => d);
 
   /// Checks if Bluetooth functionality is turned on
   Future<bool> get isOn => _channel.invokeMethod('isOn').then<bool>((d) => d);
@@ -211,15 +209,7 @@ enum LogLevel {
 }
 
 /// State of the bluetooth adapter.
-enum BluetoothState {
-  unknown,
-  unavailable,
-  unauthorized,
-  turningOn,
-  on,
-  turningOff,
-  off
-}
+enum BluetoothState { unknown, unavailable, unauthorized, turningOn, on, turningOff, off }
 
 class ScanMode {
   const ScanMode(this.value);
@@ -230,7 +220,7 @@ class ScanMode {
   final int value;
 }
 
-class DeviceIdentifier {
+class DeviceIdentifier extends Equatable {
   final String id;
   const DeviceIdentifier(this.id);
 
@@ -238,18 +228,13 @@ class DeviceIdentifier {
   String toString() => id;
 
   @override
-  int get hashCode => id.hashCode;
-
-  @override
-  bool operator ==(other) =>
-      other is DeviceIdentifier && compareAsciiLowerCase(id, other.id) == 0;
+  List<Object> get props => [this.id];
 }
 
-class ScanResult {
+class ScanResult extends Equatable {
   ScanResult.fromProto(protos.ScanResult p)
       : device = new BluetoothDevice.fromProto(p.device),
-        advertisementData =
-            new AdvertisementData.fromProto(p.advertisementData),
+        advertisementData = new AdvertisementData.fromProto(p.advertisementData),
         rssi = p.rssi;
 
   final BluetoothDevice device;
@@ -257,14 +242,7 @@ class ScanResult {
   final int rssi;
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ScanResult &&
-          runtimeType == other.runtimeType &&
-          device == other.device;
-
-  @override
-  int get hashCode => device.hashCode;
+  List<Object> get props => [this.device, this.advertisementData, this.rssi];
 
   @override
   String toString() {
@@ -272,7 +250,7 @@ class ScanResult {
   }
 }
 
-class AdvertisementData {
+class AdvertisementData extends Equatable {
   final String localName;
   final int? txPowerLevel;
   final bool connectable;
@@ -282,12 +260,21 @@ class AdvertisementData {
 
   AdvertisementData.fromProto(protos.AdvertisementData p)
       : localName = p.localName,
-        txPowerLevel =
-            (p.txPowerLevel.hasValue()) ? p.txPowerLevel.value : null,
+        txPowerLevel = (p.txPowerLevel.hasValue()) ? p.txPowerLevel.value : null,
         connectable = p.connectable,
         manufacturerData = p.manufacturerData,
         serviceData = p.serviceData,
         serviceUuids = p.serviceUuids;
+
+  @override
+  List<Object> get props => [
+        this.localName,
+        this.txPowerLevel ?? 0,
+        this.connectable,
+        this.manufacturerData,
+        this.serviceData,
+        this.serviceUuids
+      ];
 
   @override
   String toString() {
